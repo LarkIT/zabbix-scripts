@@ -23,6 +23,9 @@ function show_help() {
 	  * 1	valid
 	  * 0	invalid
 	  * $error_code	failed to get certificate
+	* domain:
+	  * String   Certificate common name (usually a domain name)
+	  * $error_code	failed to get certificate
 
 	Return code is always 0, otherwise zabbix agent fails to get item value and triggres would not work.
 EOF
@@ -47,7 +50,7 @@ done
 
 # Check arguments
 [ "$#" -lt 3 ] && show_help && exit 0
-[ "$check_type" = "expire" -o "$check_type" = "valid" ] || error "Wrong check type. Should be one of: expire,valid"
+[ "$check_type" = "expire" -o "$check_type" = "valid" -o "$check_type" = "domain" ] || error "Wrong check type. Should be one of: expire,valid,domain"
 [[ "$port" =~ ^[0-9]+$ ]] || error "Port should be a number"
 [ "$port" -ge 1 -a "$port" -le 65535 ] || error "Port should be between 1 and 65535"
 [[ "$check_timeout" =~ ^[0-9]+$ ]] || error "Check timeout should be a number"
@@ -58,7 +61,13 @@ output=$( echo \
 [ $? -ne 0 ] && error "Failed to get certificate"
 
 # Run checks
-if [ "$check_type" = "expire" ]; then
+
+if [ "$check_type" = "domain" ]; then
+
+domain=$( echo "$output" | sed -n -e 's/^.*subject=//p' | sed -n -e 's/^.*CN=//p'  )
+result "$domain"
+
+elif [ "$check_type" = "expire" ]; then
 
 expire_date=$( echo "$output" \
 | openssl x509 -noout -dates \
