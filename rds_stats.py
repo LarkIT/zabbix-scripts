@@ -83,3 +83,4 @@ if options.metric in metrics.keys():
           metrics[k]["value"] = "%i" % average
 
   #print "metric %s %s %s" % (k, vh["type"], vh["value"])
+  print("%s" % (vh["value"]))
